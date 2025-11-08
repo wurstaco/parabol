@@ -26,8 +26,8 @@ steps:
         export DEBIAN_FRONTEND=noninteractive
         apt-get update
         apt-get install -y postgresql postgresql-contrib
-        PG_VERSION=$(ls /etc/postgresql)
-        pg_ctlcluster "$PG_VERSION" main start
+        pg_version=$(ls /etc/postgresql)
+        pg_ctlcluster "$pg_version" main start
         until pg_isready -h 127.0.0.1 -p 5432; do
           sleep 1
         done
@@ -40,7 +40,7 @@ steps:
 
         pnpm pg:build
 
-        pg_ctlcluster "$PG_VERSION" main stop
+        pg_ctlcluster "$pg_version" main stop
 
         pnpm build
         pnpm predeploy
