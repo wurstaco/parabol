@@ -5,7 +5,7 @@ options:
 
 steps:
   - id: install-build
-    name: gcr.io/cloud-builders/node
+    name: us-docker.pkg.dev/cloud-builders/ga/node:22
     entrypoint: bash
     env:
       - CI=true
