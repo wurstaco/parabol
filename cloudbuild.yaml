@@ -23,7 +23,24 @@ steps:
         pnpm config set store-dir /workspace/.pnpm-store
         pnpm install --frozen-lockfile
 
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update
+        apt-get install -y postgresql postgresql-contrib
+        PG_VERSION=$(ls /etc/postgresql)
+        pg_ctlcluster "$PG_VERSION" main start
+        until pg_isready -h 127.0.0.1 -p 5432; do
+          sleep 1
+        done
+        su - postgres -c "psql -c \"ALTER USER postgres WITH PASSWORD 'pgtemp';\""
+        export POSTGRES_USER=postgres
+        export POSTGRES_PASSWORD=pgtemp
+        export POSTGRES_DB=postgres
+        export POSTGRES_HOST=127.0.0.1
+        export POSTGRES_PORT=5432
+
         pnpm pg:build
+
+        pg_ctlcluster "$PG_VERSION" main stop
 
         pnpm build
         pnpm predeploy
