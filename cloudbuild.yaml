@@ -16,7 +16,6 @@ steps:
       - |
         set -euo pipefail
 
-        # Activate the workspace's pnpm version via corepack.
         corepack enable
         corepack prepare pnpm@10.20.0 --activate
 
@@ -25,6 +24,35 @@ steps:
         pnpm build
         pnpm predeploy
 
+  - id: render-app-yaml
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    # These env vars come from Secret Manager via `secretEnv` below
+    secretEnv:
+      - GOOGLE_CLOUD_CLIENT_EMAIL
+      - GOOGLE_CLOUD_PRIVATE_KEY
+      - GOOGLE_CLOUD_PRIVATE_KEY_ID
+      - GOOGLE_OAUTH_CLIENT_ID
+      - GOOGLE_OAUTH_CLIENT_SECRET
+      - MAIL_GOOGLE_PASS
+      - SERVER_SECRET
+    args:
+      - -c
+      - |
+        set -euo pipefail
+
+        # Make a copy of app.yaml with secrets injected.
+        # Adjust placeholders to match what you used.
+        sed \
+          -e "s|GOOGLE_CLOUD_CLIENT_EMAIL: _SECRET_PLACEHOLDER_|GOOGLE_CLOUD_CLIENT_EMAIL: \"$${GOOGLE_CLOUD_CLIENT_EMAIL}\"|" \
+          -e "s|GOOGLE_CLOUD_PRIVATE_KEY: _SECRET_PLACEHOLDER_|GOOGLE_CLOUD_PRIVATE_KEY: \"$${GOOGLE_CLOUD_PRIVATE_KEY}\"|" \
+          -e "s|GOOGLE_CLOUD_PRIVATE_KEY_ID: _SECRET_PLACEHOLDER_|GOOGLE_CLOUD_PRIVATE_KEY_ID: \"$${GOOGLE_CLOUD_PRIVATE_KEY_ID}\"|" \
+          -e "s|GOOGLE_OAUTH_CLIENT_ID: _SECRET_PLACEHOLDER_|GOOGLE_OAUTH_CLIENT_ID: \"$${GOOGLE_OAUTH_CLIENT_ID}\"|" \
+          -e "s|GOOGLE_OAUTH_CLIENT_SECRET: _SECRET_PLACEHOLDER_|GOOGLE_OAUTH_CLIENT_SECRET: \"$${GOOGLE_OAUTH_CLIENT_SECRET}\"|" \
+          -e "s|MAIL_GOOGLE_PASS: _SECRET_PLACEHOLDER_|MAIL_GOOGLE_PASS: \"$${MAIL_GOOGLE_PASS}\"|" \
+          -e "s|SERVER_SECRET: _SECRET_PLACEHOLDER_|SERVER_SECRET: \"$${SERVER_SECRET}\"|" \
+          app.yaml > app.rendered.yaml
+
   - id: deploy-app-engine
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     entrypoint: bash
@@ -32,9 +60,27 @@ steps:
       - -c
       - |
         set -euo pipefail
-        gcloud app deploy --quiet --project="${PROJECT_ID}"
+        gcloud app deploy app.rendered.yaml --quiet --project="${PROJECT_ID}"
     waitFor:
       - install-build
+      - render-app-yaml
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/GOOGLE_CLOUD_CLIENT_EMAIL/versions/latest
+      env: GOOGLE_CLOUD_CLIENT_EMAIL
+    - versionName: projects/$PROJECT_ID/secrets/GOOGLE_CLOUD_PRIVATE_KEY/versions/latest
+      env: GOOGLE_CLOUD_PRIVATE_KEY
+    - versionName: projects/$PROJECT_ID/secrets/GOOGLE_CLOUD_PRIVATE_KEY_ID/versions/latest
+      env: GOOGLE_CLOUD_PRIVATE_KEY_ID
+    - versionName: projects/$PROJECT_ID/secrets/GOOGLE_OAUTH_CLIENT_ID/versions/latest
+      env: GOOGLE_OAUTH_CLIENT_ID
+    - versionName: projects/$PROJECT_ID/secrets/GOOGLE_OAUTH_CLIENT_SECRET/versions/latest
+      env: GOOGLE_OAUTH_CLIENT_SECRET
+    - versionName: projects/$PROJECT_ID/secrets/MAIL_GOOGLE_PASS/versions/latest
+      env: MAIL_GOOGLE_PASS
+    - versionName: projects/$PROJECT_ID/secrets/SERVER_SECRET/versions/latest
+      env: SERVER_SECRET
 
 cache:
   key: pnpm-store
