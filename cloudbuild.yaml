@@ -22,6 +22,9 @@ steps:
 
         pnpm config set store-dir /workspace/.pnpm-store
         pnpm install --frozen-lockfile
+
+        pnpm pg:build
+
         pnpm build
         pnpm predeploy
 
