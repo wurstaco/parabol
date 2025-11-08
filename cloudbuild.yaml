@@ -15,7 +15,7 @@ steps:
       - |
         set -eu
 
-        export PATH="$PNPM_HOME:$PATH"
+        export PATH="$${PNPM_HOME}:$PATH"
 
         corepack enable
         corepack prepare pnpm@10.20.0 --activate
