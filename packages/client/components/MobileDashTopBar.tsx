@@ -1,61 +1,62 @@
-import styled from '@emotion/styled'
-import {Menu} from '@mui/icons-material'
-import graphql from 'babel-plugin-relay/macro'
-import {useFragment} from 'react-relay'
-import {PALETTE} from '~/styles/paletteV3'
-import {ICON_SIZE} from '~/styles/typographyV2'
-import {AppBar} from '~/types/constEnums'
-import type {MobileDashTopBar_query$key} from '../__generated__/MobileDashTopBar_query.graphql'
-import PlainButton from './PlainButton/PlainButton'
-import TopBarHelp from './TopBarHelp'
+import styled from "@emotion/styled";
+import { Menu } from "@mui/icons-material";
+import graphql from "babel-plugin-relay/macro";
+import { useFragment } from "react-relay";
+import { PALETTE } from "~/styles/paletteV3";
+import { ICON_SIZE } from "~/styles/typographyV2";
+import { AppBar } from "~/types/constEnums";
+import type { MobileDashTopBar_query$key } from "../__generated__/MobileDashTopBar_query.graphql";
+import PlainButton from "./PlainButton/PlainButton";
+import TopBarHelp from "./TopBarHelp";
 //import TopBarIcon from './TopBarIcon'
-import TopBarNotifications from './TopBarNotifications'
+import TopBarNotifications from "./TopBarNotifications";
 
 interface Props {
-  toggle: () => void
-  queryRef: MobileDashTopBar_query$key
+  toggle: () => void;
+  queryRef: MobileDashTopBar_query$key;
 }
 
-const Wrapper = styled('header')({
-  backgroundColor: PALETTE.GRAPE_700,
-  display: 'flex',
+const Wrapper = styled("header")({
+  backgroundColor: PALETTE.WHITE,
+  borderBottom: `1px solid ${PALETTE.SLATE_200}`,
+  display: "flex",
   height: AppBar.HEIGHT,
-  maxWidth: '100%'
-})
+  maxWidth: "100%",
+});
 
 const LeftNavToggle = styled(PlainButton)({
   fontSize: ICON_SIZE.MD24,
-  lineHeight: '16px',
-  paddingLeft: 16
-})
-
-const LeftNavHeader = styled('div')({
-  alignItems: 'center',
-  color: PALETTE.SLATE_200,
-  display: 'flex',
-  flex: 1,
-  minWidth: 0
-})
-
-const TopBarIcons = styled('div')({
-  alignItems: 'center',
-  color: PALETTE.SLATE_200,
-  display: 'flex',
-  justifyContent: 'flex-end',
-  maxWidth: 560,
-  paddingRight: 16
-})
-
-const Title = styled('div')({
-  fontSize: 20,
-  overflow: 'hidden',
+  lineHeight: "16px",
   paddingLeft: 16,
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap'
-})
+});
+
+const LeftNavHeader = styled("div")({
+  alignItems: "center",
+  color: PALETTE.SLATE_200,
+  display: "flex",
+  flex: 1,
+  minWidth: 0,
+});
+
+const TopBarIcons = styled("div")({
+  alignItems: "center",
+  color: PALETTE.SLATE_200,
+  display: "flex",
+  justifyContent: "flex-end",
+  maxWidth: 560,
+  paddingRight: 16,
+});
+
+const Title = styled("div")({
+  fontSize: 20,
+  overflow: "hidden",
+  paddingLeft: 16,
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+});
 
 const MobileDashTopBar = (props: Props) => {
-  const {toggle, queryRef} = props
+  const { toggle, queryRef } = props;
   const data = useFragment(
     graphql`
       fragment MobileDashTopBar_query on Query {
@@ -66,9 +67,9 @@ const MobileDashTopBar = (props: Props) => {
       }
     `,
     queryRef
-  )
-  const {viewer} = data
-  const pageName = viewer?.pageName ?? 'Parabol'
+  );
+  const { viewer } = data;
+  const pageName = viewer?.pageName ?? "Parabol";
   return (
     <Wrapper>
       <LeftNavHeader>
@@ -84,7 +85,7 @@ const MobileDashTopBar = (props: Props) => {
         <TopBarNotifications queryRef={data || null} />
       </TopBarIcons>
     </Wrapper>
-  )
-}
+  );
+};
 
-export default MobileDashTopBar
+export default MobileDashTopBar;
