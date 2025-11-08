@@ -6,15 +6,15 @@ options:
 steps:
   - id: install-build
     name: node:22
-    entrypoint: bash
+    entrypoint: /bin/sh
     env:
       - CI=true
       - PNPM_HOME=/workspace/.pnpm
-      - PATH=/workspace/.pnpm:$$PATH
+      - PATH=/workspace/.pnpm:$PATH
     args:
       - -c
       - |
-        set -euo pipefail
+        set -eu
 
         corepack enable
         corepack prepare pnpm@10.20.0 --activate
