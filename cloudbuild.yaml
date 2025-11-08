@@ -5,7 +5,7 @@ options:
 
 steps:
   - id: install-build
-    name: gcr.io/cloud-builders/node:22
+    name: gcr.io/cloud-builders/node
     entrypoint: bash
     env:
       - CI=true
