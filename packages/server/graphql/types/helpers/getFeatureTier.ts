@@ -1,14 +1,11 @@
-import type {TierEnum} from '../../public/resolverTypes'
+import type { TierEnum } from "../../public/resolverTypes";
 
 export const getFeatureTier = ({
   tier,
-  trialStartDate
+  trialStartDate,
 }: {
-  tier: TierEnum
-  trialStartDate?: Date | null
+  tier: TierEnum;
+  trialStartDate?: Date | null;
 }) => {
-  if (tier === 'starter' && !!trialStartDate) {
-    return 'team'
-  }
-  return tier
-}
+  return "team";
+};

@@ -1,47 +1,60 @@
-import graphql from 'babel-plugin-relay/macro'
-import {lazy} from 'react'
-import {type PreloadedQuery, usePreloadedQuery} from 'react-relay'
-import {Redirect, Route, Switch, useRouteMatch} from 'react-router'
-import type {OrganizationQuery} from '../../../../__generated__/OrganizationQuery.graphql'
+import graphql from "babel-plugin-relay/macro";
+import { lazy } from "react";
+import { type PreloadedQuery, usePreloadedQuery } from "react-relay";
+import { Redirect, Route, Switch, useRouteMatch } from "react-router";
+import type { OrganizationQuery } from "../../../../__generated__/OrganizationQuery.graphql";
 import {
   AUTHENTICATION_PAGE,
   BILLING_PAGE,
   MEMBERS_PAGE,
   ORG_INTEGRATIONS_PAGE,
   ORG_SETTINGS_PAGE,
-  TEAMS_PAGE
-} from '../../../../utils/constants'
-import OrgNav from '../Organization/OrgNav'
-import OrgTeams from '../OrgTeams/OrgTeams'
+  TEAMS_PAGE,
+} from "../../../../utils/constants";
+import OrgNav from "../Organization/OrgNav";
+import OrgTeams from "../OrgTeams/OrgTeams";
 
 const OrgPlansAndBillingRoot = lazy(
-  () => import(/* webpackChunkName: 'OrgPlansAndBillingRoot' */ './OrgPlansAndBillingRoot')
-)
+  () =>
+    import(
+      /* webpackChunkName: 'OrgPlansAndBillingRoot' */ "./OrgPlansAndBillingRoot"
+    )
+);
 const OrgMembers = lazy(
   () =>
-    import(/* webpackChunkName: 'OrgMembersRoot' */ '../../containers/OrgMembers/OrgMembersRoot')
-)
+    import(
+      /* webpackChunkName: 'OrgMembersRoot' */ "../../containers/OrgMembers/OrgMembersRoot"
+    )
+);
 
 const OrgTeamMembers = lazy(
-  () => import(/* webpackChunkName: 'OrgTeamMembers' */ '../OrgTeamMembers/OrgTeamMembersRoot')
-)
+  () =>
+    import(
+      /* webpackChunkName: 'OrgTeamMembers' */ "../OrgTeamMembers/OrgTeamMembersRoot"
+    )
+);
 
-const OrgDetails = lazy(() => import(/* webpackChunkName: 'OrgDetails' */ './OrgDetails'))
+const OrgDetails = lazy(
+  () => import(/* webpackChunkName: 'OrgDetails' */ "./OrgDetails")
+);
 
 const OrgIntegrations = lazy(
-  () => import(/* webpackChunkName: 'OrgIntegrations' */ '../OrgIntegrations/OrgIntegrations')
-)
+  () =>
+    import(
+      /* webpackChunkName: 'OrgIntegrations' */ "../OrgIntegrations/OrgIntegrations"
+    )
+);
 
 const Authentication = lazy(
   () =>
     import(
-      /* webpackChunkName: 'Authentication' */ '../../containers/OrgAuthentication/OrgAuthenticationRoot'
+      /* webpackChunkName: 'Authentication' */ "../../containers/OrgAuthentication/OrgAuthenticationRoot"
     )
-)
+);
 
 type Props = {
-  queryRef: PreloadedQuery<OrganizationQuery>
-}
+  queryRef: PreloadedQuery<OrganizationQuery>;
+};
 
 const query = graphql`
   query OrganizationQuery($orgId: ID!) {
@@ -57,29 +70,31 @@ const query = graphql`
       }
     }
   }
-`
+`;
 
 const Organization = (props: Props) => {
-  const {queryRef} = props
-  const {viewer} = usePreloadedQuery<OrganizationQuery>(query, queryRef)
-  const match = useRouteMatch<{orgId: string}>('/me/organizations/:orgId')!
-  const {organization} = viewer
-  if (!organization) return null
-  const {id: orgId} = organization
+  const { queryRef } = props;
+  const { viewer } = usePreloadedQuery<OrganizationQuery>(query, queryRef);
+  const match = useRouteMatch<{ orgId: string }>("/me/organizations/:orgId")!;
+  const { organization } = viewer;
+  if (!organization) return null;
+  const { id: orgId } = organization;
 
   return (
-    <section className={'px-4 md:px-8'}>
+    <section className={"px-4 md:px-8"}>
       <OrgNav organizationRef={organization} />
       <Switch>
         <Route
           exact
           path={`${match.url}`}
-          render={() => <Redirect to={`${match.url}/${BILLING_PAGE}`} />}
+          render={() => <Redirect to={`${match.url}/${MEMBERS_PAGE}`} />}
         />
         <Route
           exact
           path={`${match.url}/${BILLING_PAGE}`}
-          render={() => <OrgPlansAndBillingRoot organizationRef={organization} />}
+          render={() => (
+            <OrgPlansAndBillingRoot organizationRef={organization} />
+          )}
         />
 
         <Route
@@ -95,7 +110,9 @@ const Organization = (props: Props) => {
         <Route
           exact
           path={`${match.url}/${ORG_INTEGRATIONS_PAGE}`}
-          render={(p) => <OrgIntegrations {...p} organizationRef={organization} />}
+          render={(p) => (
+            <OrgIntegrations {...p} organizationRef={organization} />
+          )}
         />
         <Route
           exact
@@ -107,10 +124,14 @@ const Organization = (props: Props) => {
           path={`${match.url}/${TEAMS_PAGE}`}
           render={() => <OrgTeams organizationRef={organization} />}
         />
-        <Route exact path={`${match.url}/${TEAMS_PAGE}/:teamId`} component={OrgTeamMembers} />
+        <Route
+          exact
+          path={`${match.url}/${TEAMS_PAGE}/:teamId`}
+          component={OrgTeamMembers}
+        />
       </Switch>
     </section>
-  )
-}
+  );
+};
 
-export default Organization
+export default Organization;

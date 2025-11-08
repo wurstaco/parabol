@@ -1,17 +1,8 @@
-import {getFeatureTier} from '../../types/helpers/getFeatureTier'
-import type {OrganizationUserResolvers} from '../resolverTypes'
+import type { OrganizationUserResolvers } from "../resolverTypes";
 
 const OrganizationUser: OrganizationUserResolvers = {
-  tier: async ({orgId}, _args, {dataLoader}) => {
-    const org = await dataLoader.get('organizations').loadNonNull(orgId)
-    const {tier, trialStartDate} = org
-    return tier ? getFeatureTier({tier, trialStartDate}) : tier
-  },
-  billingTier: async ({orgId}, _args, {dataLoader}) => {
-    const org = await dataLoader.get('organizations').loadNonNull(orgId)
-    const {tier} = org
-    return tier
-  }
-}
+  tier: async () => "team",
+  billingTier: async () => "team",
+};
 
-export default OrganizationUser
+export default OrganizationUser;

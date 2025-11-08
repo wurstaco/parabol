@@ -1,6 +1,6 @@
-import StripeManager from './StripeManager'
-import StubStripeManager from './StubStripeManager'
+import type StripeManager from "./StripeManager";
+import StubStripeManager from "./StubStripeManager";
 
 export function getStripeManager(): StripeManager {
-  return process.env.CI ? StubStripeManager() : new StripeManager()
+  return StubStripeManager();
 }

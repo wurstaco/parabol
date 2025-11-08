@@ -2,124 +2,140 @@ import {
   getUserId,
   isSuperUser,
   isUserBillingLeader,
-  isUserOrgAdmin
-} from '../../../utils/authorization'
-import {getFeatureTier} from '../../types/helpers/getFeatureTier'
-import type {OrganizationResolvers} from '../resolverTypes'
-import getActiveTeamCountByOrgIds from './helpers/getActiveTeamCountByOrgIds'
+  isUserOrgAdmin,
+} from "../../../utils/authorization";
+import type { OrganizationResolvers } from "../resolverTypes";
+import getActiveTeamCountByOrgIds from "./helpers/getActiveTeamCountByOrgIds";
 
 const Organization: OrganizationResolvers = {
-  approvedDomains: async ({id: orgId}, _args, {dataLoader}) => {
-    return dataLoader.get('organizationApprovedDomainsByOrgId').load(orgId)
+  approvedDomains: async ({ id: orgId }, _args, { dataLoader }) => {
+    return dataLoader.get("organizationApprovedDomainsByOrgId").load(orgId);
   },
-  meetingStats: async ({id: orgId}, _args, {dataLoader}) => {
-    return dataLoader.get('meetingStatsByOrgId').load(orgId)
+  meetingStats: async ({ id: orgId }, _args, { dataLoader }) => {
+    return dataLoader.get("meetingStatsByOrgId").load(orgId);
   },
-  teamStats: async ({id: orgId}, _args, {dataLoader}) => {
-    return dataLoader.get('teamStatsByOrgId').load(orgId)
+  teamStats: async ({ id: orgId }, _args, { dataLoader }) => {
+    return dataLoader.get("teamStatsByOrgId").load(orgId);
   },
-  company: async ({activeDomain}, _args, {authToken}) => {
-    if (!activeDomain || !isSuperUser(authToken)) return null
-    return {id: activeDomain}
+  company: async ({ activeDomain }, _args, { authToken }) => {
+    if (!activeDomain || !isSuperUser(authToken)) return null;
+    return { id: activeDomain };
   },
-  featureFlag: async ({id: orgId}, {featureName}, {dataLoader}) => {
-    return await dataLoader.get('featureFlagByOwnerId').load({ownerId: orgId, featureName})
+  featureFlag: async ({ id: orgId }, { featureName }, { dataLoader }) => {
+    return await dataLoader
+      .get("featureFlagByOwnerId")
+      .load({ ownerId: orgId, featureName });
   },
-  picture: async ({picture}, _args, {dataLoader}) => {
-    if (!picture) return null
-    return dataLoader.get('fileStoreAsset').load(picture)
+  picture: async ({ picture }, _args, { dataLoader }) => {
+    if (!picture) return null;
+    return dataLoader.get("fileStoreAsset").load(picture);
   },
-  tier: ({tier, trialStartDate}) => {
-    return getFeatureTier({tier, trialStartDate})
-  },
-  billingTier: ({tier}) => tier,
-  saml: async ({id: orgId}, _args, {dataLoader}) => {
-    const saml = await dataLoader.get('samlByOrgId').load(orgId)
-    return saml || null
-  },
-
-  isBillingLeader: async ({id: orgId}, _args, {authToken, dataLoader}) => {
-    const viewerId = getUserId(authToken)
-    return isUserBillingLeader(viewerId, orgId, dataLoader)
+  tier: () => "team",
+  billingTier: () => "team",
+  isPaid: () => true,
+  saml: async ({ id: orgId }, _args, { dataLoader }) => {
+    const saml = await dataLoader.get("samlByOrgId").load(orgId);
+    return saml || null;
   },
 
-  isOrgAdmin: async ({id: orgId}, _args, {authToken, dataLoader}) => {
-    const viewerId = getUserId(authToken)
-    return isUserOrgAdmin(viewerId, orgId, dataLoader)
+  isBillingLeader: async ({ id: orgId }, _args, { authToken, dataLoader }) => {
+    const viewerId = getUserId(authToken);
+    return isUserBillingLeader(viewerId, orgId, dataLoader);
   },
 
-  activeTeamCount: async ({id: orgId}) => {
-    return getActiveTeamCountByOrgIds(orgId)
+  isOrgAdmin: async ({ id: orgId }, _args, { authToken, dataLoader }) => {
+    const viewerId = getUserId(authToken);
+    return isUserOrgAdmin(viewerId, orgId, dataLoader);
   },
 
-  teams: async ({id: orgId}, _args, {dataLoader, authToken}) => {
-    const viewerId = getUserId(authToken)
+  activeTeamCount: async ({ id: orgId }) => {
+    return getActiveTeamCountByOrgIds(orgId);
+  },
+
+  teams: async ({ id: orgId }, _args, { dataLoader, authToken }) => {
+    const viewerId = getUserId(authToken);
     const [teamsInOrg, isOrgAdmin] = await Promise.all([
-      dataLoader.get('teamsByOrgIds').load(orgId),
-      isUserOrgAdmin(viewerId, orgId, dataLoader)
-    ])
-    const sortedTeams = teamsInOrg.sort((a, b) => a.name.localeCompare(b.name))
+      dataLoader.get("teamsByOrgIds").load(orgId),
+      isUserOrgAdmin(viewerId, orgId, dataLoader),
+    ]);
+    const sortedTeams = teamsInOrg.sort((a, b) => a.name.localeCompare(b.name));
 
     if (isOrgAdmin || isSuperUser(authToken)) {
       // Org admins and super users can see all teams
-      return sortedTeams
+      return sortedTeams;
     } else {
       // Regular users can see teams they're on plus public teams
-      return sortedTeams.filter((team) => team.isPublic || authToken.tms.includes(team.id))
+      return sortedTeams.filter(
+        (team) => team.isPublic || authToken.tms.includes(team.id)
+      );
     }
   },
 
-  allTeamsCount: async ({id: orgId}, _args, {dataLoader}) => {
-    const allTeamsOnOrg = await dataLoader.get('teamsByOrgIds').load(orgId)
-    return allTeamsOnOrg?.length ?? 0
+  allTeamsCount: async ({ id: orgId }, _args, { dataLoader }) => {
+    const allTeamsOnOrg = await dataLoader.get("teamsByOrgIds").load(orgId);
+    return allTeamsOnOrg?.length ?? 0;
   },
 
-  viewerOrganizationUser: async ({id: orgId}, _args, {dataLoader, authToken}) => {
-    const viewerId = getUserId(authToken)
-    return dataLoader.get('organizationUsersByUserIdOrgId').load({userId: viewerId, orgId})
+  viewerOrganizationUser: async (
+    { id: orgId },
+    _args,
+    { dataLoader, authToken }
+  ) => {
+    const viewerId = getUserId(authToken);
+    return dataLoader
+      .get("organizationUsersByUserIdOrgId")
+      .load({ userId: viewerId, orgId });
   },
 
-  organizationUsers: async ({id: orgId}, _args, {dataLoader}) => {
-    const organizationUsers = await dataLoader.get('organizationUsersByOrgId').load(orgId)
-    organizationUsers.sort((a, b) => (a.orgId > b.orgId ? 1 : -1))
+  organizationUsers: async ({ id: orgId }, _args, { dataLoader }) => {
+    const organizationUsers = await dataLoader
+      .get("organizationUsersByOrgId")
+      .load(orgId);
+    organizationUsers.sort((a, b) => (a.orgId > b.orgId ? 1 : -1));
     const edges = organizationUsers.map((node) => ({
       cursor: node.id,
-      node
-    }))
+      node,
+    }));
     // TODO implement pagination
-    const firstEdge = edges[0]
+    const firstEdge = edges[0];
     return {
       edges,
       pageInfo: {
         endCursor: firstEdge ? edges[edges.length - 1]!.cursor : null,
         hasNextPage: false,
-        hasPreviousPage: false
-      }
-    }
+        hasPreviousPage: false,
+      },
+    };
   },
 
-  orgUserCount: async ({id: orgId}, _args, {dataLoader}) => {
+  orgUserCount: async ({ id: orgId }, _args, { dataLoader }) => {
     const [organizationUsers, activeOrganizationUsers] = await Promise.all([
-      dataLoader.get('organizationUsersByOrgId').load(orgId),
-      dataLoader.get('activeOrganizationUsersByOrgId').load(orgId)
-    ])
+      dataLoader.get("organizationUsersByOrgId").load(orgId),
+      dataLoader.get("activeOrganizationUsersByOrgId").load(orgId),
+    ]);
     return {
-      inactiveUserCount: organizationUsers.length - activeOrganizationUsers.length,
-      activeUserCount: activeOrganizationUsers.length
-    }
+      inactiveUserCount:
+        organizationUsers.length - activeOrganizationUsers.length,
+      activeUserCount: activeOrganizationUsers.length,
+    };
   },
 
-  billingLeaders: async ({id: orgId}, _args, {dataLoader}) => {
-    const organizationUsers = await dataLoader.get('organizationUsersByOrgId').load(orgId)
+  billingLeaders: async ({ id: orgId }, _args, { dataLoader }) => {
+    const organizationUsers = await dataLoader
+      .get("organizationUsersByOrgId")
+      .load(orgId);
     return organizationUsers.filter(
       (organizationUser) =>
-        organizationUser.role === 'BILLING_LEADER' || organizationUser.role === 'ORG_ADMIN'
-    )
+        organizationUser.role === "BILLING_LEADER" ||
+        organizationUser.role === "ORG_ADMIN"
+    );
   },
-  integrationProviders: ({id: orgId}) => ({orgId}),
-  orgFeatureFlags: async ({id: orgId}, _args, {dataLoader}) => {
-    return dataLoader.get('allFeatureFlagsByOwner').load({ownerId: orgId, scope: 'Organization'})
-  }
-}
+  integrationProviders: ({ id: orgId }) => ({ orgId }),
+  orgFeatureFlags: async ({ id: orgId }, _args, { dataLoader }) => {
+    return dataLoader
+      .get("allFeatureFlagsByOwner")
+      .load({ ownerId: orgId, scope: "Organization" });
+  },
+};
 
-export default Organization
+export default Organization;

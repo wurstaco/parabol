@@ -1,38 +1,46 @@
-import graphql from 'babel-plugin-relay/macro'
-import {useEffect, useState} from 'react'
+import graphql from "babel-plugin-relay/macro";
+import { useEffect, useState } from "react";
 
-import {useFragment} from 'react-relay'
-import {useHistory} from 'react-router'
-import type {AddReflectTemplateMutation$data} from '~/__generated__/AddReflectTemplateMutation.graphql'
-import type {TeamPickerModal_teams$key} from '~/__generated__/TeamPickerModal_teams.graphql'
-import type {MeetingTypeEnum} from '~/__generated__/TemplateDetails_activity.graphql'
-import type {AddPokerTemplateMutation$data} from '../../__generated__/AddPokerTemplateMutation.graphql'
-import useAtmosphere from '../../hooks/useAtmosphere'
-import useMutationProps from '../../hooks/useMutationProps'
-import AddPokerTemplateMutation from '../../mutations/AddPokerTemplateMutation'
-import AddReflectTemplateMutation from '../../mutations/AddReflectTemplateMutation'
-import {cn} from '../../ui/cn'
-import {Dialog} from '../../ui/Dialog/Dialog'
-import {DialogContent} from '../../ui/Dialog/DialogContent'
-import SendClientSideEvent from '../../utils/SendClientSideEvent'
-import sortByTier from '../../utils/sortByTier'
-import NewMeetingTeamPicker from '../NewMeetingTeamPicker'
+import { useFragment } from "react-relay";
+import { useHistory } from "react-router";
+import type { AddReflectTemplateMutation$data } from "~/__generated__/AddReflectTemplateMutation.graphql";
+import type { TeamPickerModal_teams$key } from "~/__generated__/TeamPickerModal_teams.graphql";
+import type { MeetingTypeEnum } from "~/__generated__/TemplateDetails_activity.graphql";
+import type { AddPokerTemplateMutation$data } from "../../__generated__/AddPokerTemplateMutation.graphql";
+import useAtmosphere from "../../hooks/useAtmosphere";
+import useMutationProps from "../../hooks/useMutationProps";
+import AddPokerTemplateMutation from "../../mutations/AddPokerTemplateMutation";
+import AddReflectTemplateMutation from "../../mutations/AddReflectTemplateMutation";
+import { cn } from "../../ui/cn";
+import { Dialog } from "../../ui/Dialog/Dialog";
+import { DialogContent } from "../../ui/Dialog/DialogContent";
+import SendClientSideEvent from "../../utils/SendClientSideEvent";
+import sortByTier from "../../utils/sortByTier";
+import NewMeetingTeamPicker from "../NewMeetingTeamPicker";
 
 const ACTION_BUTTON_CLASSES =
-  'w-max cursor-pointer rounded-full px-4 py-2 text-center font-sans text-base font-medium'
+  "w-max cursor-pointer rounded-full px-4 py-2 text-center font-sans text-base font-medium";
 
 interface Props {
-  preferredTeamId: string | null | undefined
-  teamsRef: TeamPickerModal_teams$key
-  category: string
-  parentTemplateId: string
-  type: MeetingTypeEnum
-  isOpen: boolean
-  closeModal: () => void
+  preferredTeamId: string | null | undefined;
+  teamsRef: TeamPickerModal_teams$key;
+  category: string;
+  parentTemplateId: string;
+  type: MeetingTypeEnum;
+  isOpen: boolean;
+  closeModal: () => void;
 }
 
 const TeamPickerModal = (props: Props) => {
-  const {teamsRef, category, parentTemplateId, type, preferredTeamId, isOpen, closeModal} = props
+  const {
+    teamsRef,
+    category,
+    parentTemplateId,
+    type,
+    preferredTeamId,
+    isOpen,
+    closeModal,
+  } = props;
   const teams = useFragment(
     graphql`
       fragment TeamPickerModal_teams on Team @relay(plural: true) {
@@ -45,118 +53,121 @@ const TeamPickerModal = (props: Props) => {
       }
     `,
     teamsRef
-  )
+  );
 
   const [selectedTeam, setSelectedTeam] = useState(
     teams.find((team) => team.id === preferredTeamId) ?? sortByTier(teams)[0]
-  )
+  );
 
-  const atmosphere = useAtmosphere()
-  const {submitting, error, submitMutation, onError, onCompleted} = useMutationProps()
+  const atmosphere = useAtmosphere();
+  const { submitting, error, submitMutation, onError, onCompleted } =
+    useMutationProps();
 
   useEffect(() => {
-    onCompleted()
-  }, [selectedTeam?.id])
+    onCompleted();
+  }, [selectedTeam?.id]);
 
-  const history = useHistory()
+  const history = useHistory();
 
   // user has no teams
-  if (!selectedTeam) return null
+  if (!selectedTeam) return null;
 
   const handleSelectTeam = () => {
     if (submitting) {
-      return
+      return;
     }
 
-    if (type === 'retrospective') {
-      submitMutation()
+    if (type === "retrospective") {
+      submitMutation();
       AddReflectTemplateMutation(
         atmosphere,
-        {teamId: selectedTeam.id, parentTemplateId},
+        { teamId: selectedTeam.id, parentTemplateId },
         {
           onError,
           onCompleted: (res: AddReflectTemplateMutation$data) => {
-            closeModal()
-            const templateId = res.addReflectTemplate?.reflectTemplate?.id
+            closeModal();
+            const templateId = res.addReflectTemplate?.reflectTemplate?.id;
             if (templateId) {
               history.push(`/activity-library/details/${templateId}`, {
                 prevCategory: category,
-                edit: true
-              })
+                edit: true,
+              });
             }
-            onCompleted()
-          }
+            onCompleted();
+          },
         }
-      )
-    } else if (type === 'poker') {
-      submitMutation()
+      );
+    } else if (type === "poker") {
+      submitMutation();
       AddPokerTemplateMutation(
         atmosphere,
-        {teamId: selectedTeam.id, parentTemplateId},
+        { teamId: selectedTeam.id, parentTemplateId },
         {
           onError,
           onCompleted: (res: AddPokerTemplateMutation$data) => {
-            closeModal()
-            const templateId = res.addPokerTemplate?.pokerTemplate?.id
+            closeModal();
+            const templateId = res.addPokerTemplate?.pokerTemplate?.id;
             if (templateId) {
               history.push(`/activity-library/details/${templateId}`, {
                 prevCategory: category,
-                edit: true
-              })
+                edit: true,
+              });
             }
-            onCompleted()
-          }
+            onCompleted();
+          },
         }
-      )
+      );
     }
-  }
+  };
 
   const handleUpgrade = () => {
-    SendClientSideEvent(atmosphere, 'Upgrade CTA Clicked', {
-      upgradeCTALocation: 'cloneTemplateAL',
-      meetingType: type
-    })
-    history.push(`/me/organizations/${selectedTeam.orgId}/billing`)
-  }
+    SendClientSideEvent(atmosphere, "Upgrade CTA Clicked", {
+      upgradeCTALocation: "cloneTemplateAL",
+      meetingType: type,
+    });
+    history.push(`/me/organizations/${selectedTeam.orgId}`);
+  };
 
   return (
     <Dialog isOpen={isOpen} onClose={closeModal}>
-      <DialogContent className='w-[440px] p-6'>
-        <div className='flex flex-col gap-4'>
+      <DialogContent className="w-[440px] p-6">
+        <div className="flex flex-col gap-4">
           <div>
             <b>Select the team</b> to manage this cloned template
           </div>
           <NewMeetingTeamPicker
             onSelectTeam={(teamId) => {
-              const newTeam = teams.find((team) => team.id === teamId)
-              newTeam && setSelectedTeam(newTeam)
+              const newTeam = teams.find((team) => team.id === teamId);
+              newTeam && setSelectedTeam(newTeam);
             }}
             selectedTeamRef={selectedTeam}
             teamsRef={teams}
           />
-          {selectedTeam.tier === 'starter' && (
+          {selectedTeam.tier === "starter" && (
             <div>
-              This team is on the <b>Starter</b> plan. <b>Upgrade</b> to clone and edit templates on
-              this team.
+              This team is on the <b>Starter</b> plan. <b>Upgrade</b> to clone
+              and edit templates on this team.
             </div>
           )}
-          {error?.message && <div className='w-full text-tomato-500'>{error.message}</div>}
-          <div className='flex gap-2.5 self-end'>
+          {error?.message && (
+            <div className="w-full text-tomato-500">{error.message}</div>
+          )}
+          <div className="flex gap-2.5 self-end">
             <button
               className={cn(
                 ACTION_BUTTON_CLASSES,
-                'border border-slate-400 border-solid bg-white text-slate-700 hover:bg-slate-200'
+                "border border-slate-400 border-solid bg-white text-slate-700 hover:bg-slate-200"
               )}
               onClick={closeModal}
             >
               Cancel
             </button>
-            {selectedTeam.tier === 'starter' ? (
+            {selectedTeam.tier === "starter" ? (
               <button
                 className={cn(
                   ACTION_BUTTON_CLASSES,
-                  'bg-rose-500 px-4 py-2 text-white hover:bg-rose-600',
-                  submitting && 'cursor-wait'
+                  "bg-rose-500 px-4 py-2 text-white hover:bg-rose-600",
+                  submitting && "cursor-wait"
                 )}
                 onClick={handleUpgrade}
               >
@@ -166,8 +177,8 @@ const TeamPickerModal = (props: Props) => {
               <button
                 className={cn(
                   ACTION_BUTTON_CLASSES,
-                  'bg-sky-500 px-4 py-2 text-white hover:bg-sky-600',
-                  submitting && 'cursor-wait'
+                  "bg-sky-500 px-4 py-2 text-white hover:bg-sky-600",
+                  submitting && "cursor-wait"
                 )}
                 onClick={handleSelectTeam}
               >
@@ -178,7 +189,7 @@ const TeamPickerModal = (props: Props) => {
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default TeamPickerModal
+export default TeamPickerModal;
