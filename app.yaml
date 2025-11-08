@@ -1,0 +1,50 @@
+runtime: nodejs
+env: flex
+service: default
+runtime_config:
+  node_version: 22
+entrypoint: >
+  node node_modules/.bin/pm2-runtime start pm2.config.js --env production
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 3
+  cpu_utilization:
+    target_utilization: 0.65
+resources:
+  cpu: 2
+  memory_gb: 4
+  disk_size_gb: 20
+env_variables:
+  NODE_ENV: production
+  HOST: 0.0.0.0
+  PROTO: https
+  PORT: '3000'
+  FILE_STORE_PROVIDER: gcs
+  AUTH_MICROSOFT_DISABLED: 'true'
+  AI_EMBEDDER_WORKERS: '1'
+  POSTGRES_USE_PGVECTOR: 'true'
+  CDN_BASE_URL: _SECRET_PLACEHOLDER_
+  GOOGLE_CLOUD_CLIENT_EMAIL: _SECRET_PLACEHOLDER_
+  GOOGLE_CLOUD_PRIVATE_KEY: _SECRET_PLACEHOLDER_
+  GOOGLE_CLOUD_PRIVATE_KEY_ID: _SECRET_PLACEHOLDER_
+  GOOGLE_OAUTH_CLIENT_ID: _SECRET_PLACEHOLDER_
+  GOOGLE_OAUTH_CLIENT_SECRET: _SECRET_PLACEHOLDER_
+  GOOGLE_GCS_BUCKET: parabol_artifacts
+  MAIL_PROVIDER: google
+  MAIL_GOOGLE_USER: _SECRET_PLACEHOLDER_
+  MAIL_GOOGLE_PASS: _SECRET_PLACEHOLDER_
+  MAIL_FROM: dev@wursta.com
+  PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+  PGADMIN_DEFAULT_PASSWORD: _SECRET_PLACEHOLDER_
+  POSTGRES_PASSWORD: _SECRET_PLACEHOLDER_
+  POSTGRES_USER: pgparaboladmin
+  POSTGRES_DB: parabol-saas
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  REDIS_URL: redis://localhost:6379
+  SERVER_ID: '1'
+  SOCKET_PORT: '3001'
+  SERVER_SECRET: _SECRET_PLACEHOLDER_
+  AI_EMBEDDING_MODELS: '[{"model": "text-embeddings-inference:llmrails/ember-v1", "url": "http://localhost:3040/"}]'
+  AI_GENERATION_MODELS: '[{"model": "text-generation-inference:TheBloke/zephyr-7b-beta", "url": "http://localhost:3050/"}]' # Generation
+  AI_EMBEDDER_WORKERS: '1'
